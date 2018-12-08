@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.eclipse.jdt.ls.core.internal;
 
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -20,6 +23,10 @@ import org.java_websocket.server.WebSocketServer;
  *
  */
 public class WebSocketLanguageServer extends WebSocketServer {
+
+	public WebSocketLanguageServer(int port) throws UnknownHostException {
+		super(new InetSocketAddress(port));
+	}
 
 	/* (non-Javadoc)
 	 * @see org.java_websocket.server.WebSocketServer#onClose(org.java_websocket.WebSocket, int, java.lang.String, boolean)
@@ -53,6 +60,7 @@ public class WebSocketLanguageServer extends WebSocketServer {
 	 */
 	@Override
 	public void onOpen(WebSocket arg0, ClientHandshake arg1) {
+		System.err.println("Welcome to the server!");
 		// TODO Auto-generated method stub
 
 	}
