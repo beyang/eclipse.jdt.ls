@@ -10,10 +10,60 @@
  *******************************************************************************/
 package org.eclipse.jdt.ls.core.internal;
 
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
+
+
 /**
  * @author beyang
  *
  */
-public class WebSocketServer extends WebSocketServer {
+public class WebSocketLanguageServer extends WebSocketServer {
+
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onClose(org.java_websocket.WebSocket, int, java.lang.String, boolean)
+	 */
+	@Override
+	public void onClose(WebSocket arg0, int arg1, String arg2, boolean arg3) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onError(org.java_websocket.WebSocket, java.lang.Exception)
+	 */
+	@Override
+	public void onError(WebSocket arg0, Exception arg1) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onMessage(org.java_websocket.WebSocket, java.lang.String)
+	 */
+	@Override
+	public void onMessage(WebSocket arg0, String arg1) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onOpen(org.java_websocket.WebSocket, org.java_websocket.handshake.ClientHandshake)
+	 */
+	@Override
+	public void onOpen(WebSocket arg0, ClientHandshake arg1) {
+		// TODO Auto-generated method stub
+
+	}
+
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onStart()
+	 */
+	@Override
+	public void onStart() {
+		// TODO Auto-generated method stub
+
+	}
 
 }
