@@ -99,6 +99,8 @@ public class JavaLanguageServerPlugin extends Plugin {
 	private static PrintStream err;
 
 	private LanguageServer languageServer;
+
+	// TODO(beyang): singletons that may need to be removed
 	private ProjectsManager projectsManager;
 	private DigestStore digestStore;
 	private ContentProviderManager contentProviderManager;
@@ -106,6 +108,12 @@ public class JavaLanguageServerPlugin extends Plugin {
 	private JDTLanguageServer protocol;
 
 	private PreferenceManager preferenceManager;
+
+	// TODO(beyang): end singletons
+
+	// TODO(beyang): debug
+	private static final boolean multiConnection = true;
+
 
 	public static LanguageServer getLanguageServer() {
 		return pluginInstance == null ? null : pluginInstance.languageServer;
@@ -276,10 +284,20 @@ public class JavaLanguageServerPlugin extends Plugin {
 	}
 
 	private void startConnection() throws IOException {
+		if (multiConnection) {
+			// TODO: launch websocket server
+			// - listens for connections
+			// - on new connection, does the init validation
+			// - creates new JDTLanguageServer
+			// - keeps track of existing connections somehow
+			return;
+		}
+
 		Launcher<JavaLanguageClient> launcher;
 		ExecutorService executorService = Executors.newCachedThreadPool();
 		protocol = new JDTLanguageServer(projectsManager, preferenceManager);
 		if (JDTEnvironmentUtils.inSocketStreamDebugMode()) {
+			// HERE: need multiple workspace support?
 			String host = JDTEnvironmentUtils.getClientHost();
 			Integer port = JDTEnvironmentUtils.getClientPort();
 			InetSocketAddress inetSocketAddress = new InetSocketAddress(host, port);
