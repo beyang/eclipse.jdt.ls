@@ -32,34 +32,34 @@ public class WebSocketLanguageServer extends WebSocketServer {
 	 * @see org.java_websocket.server.WebSocketServer#onClose(org.java_websocket.WebSocket, int, java.lang.String, boolean)
 	 */
 	@Override
-	public void onClose(WebSocket arg0, int arg1, String arg2, boolean arg3) {
+	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		// TODO Auto-generated method stub
-
+		System.err.println("# close:" + reason);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.java_websocket.server.WebSocketServer#onError(org.java_websocket.WebSocket, java.lang.Exception)
 	 */
 	@Override
-	public void onError(WebSocket arg0, Exception arg1) {
+	public void onError(WebSocket conn, Exception err) {
 		// TODO Auto-generated method stub
-
+		System.err.println("# err: " + err.toString());
 	}
 
 	/* (non-Javadoc)
 	 * @see org.java_websocket.server.WebSocketServer#onMessage(org.java_websocket.WebSocket, java.lang.String)
 	 */
 	@Override
-	public void onMessage(WebSocket arg0, String arg1) {
+	public void onMessage(WebSocket conn, String msg) {
 		// TODO Auto-generated method stub
-
+		System.err.println("# message: " + msg);
 	}
 
 	/* (non-Javadoc)
 	 * @see org.java_websocket.server.WebSocketServer#onOpen(org.java_websocket.WebSocket, org.java_websocket.handshake.ClientHandshake)
 	 */
 	@Override
-	public void onOpen(WebSocket arg0, ClientHandshake arg1) {
+	public void onOpen(WebSocket conn, ClientHandshake handshake) {
 		System.err.println("Welcome to the server!");
 		// TODO Auto-generated method stub
 
@@ -71,7 +71,7 @@ public class WebSocketLanguageServer extends WebSocketServer {
 	@Override
 	public void onStart() {
 		// TODO Auto-generated method stub
-
+		System.err.println("# onStart");
 	}
 
 }

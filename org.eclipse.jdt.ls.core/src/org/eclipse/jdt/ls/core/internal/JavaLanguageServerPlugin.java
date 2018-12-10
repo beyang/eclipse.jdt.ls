@@ -290,7 +290,7 @@ public class JavaLanguageServerPlugin extends Plugin {
 			// - on new connection, does the init validation
 			// - creates new JDTLanguageServer
 			// - keeps track of existing connections somehow
-			WebSocketLanguageServer webSocketLanguageServer = new WebSocketLanguageServer(8085);
+			WebSocketLanguageServer webSocketLanguageServer = new WebSocketLanguageServer(8887);
 			webSocketLanguageServer.start(); // TODO stop
 			return;
 		}
@@ -433,7 +433,8 @@ public class JavaLanguageServerPlugin extends Plugin {
 			System.setErr(new PrintStream(stdFileErr));
 		} else {
 			System.setOut(new PrintStream(new ByteArrayOutputStream()));
-			System.setErr(new PrintStream(new ByteArrayOutputStream()));
+			// DEBUG
+			//			System.setErr(new PrintStream(new ByteArrayOutputStream()));
 		}
 	}
 
