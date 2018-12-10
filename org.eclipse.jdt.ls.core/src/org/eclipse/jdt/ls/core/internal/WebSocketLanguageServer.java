@@ -63,6 +63,7 @@ public class WebSocketLanguageServer extends WebSocketServer {
 		System.err.println("Welcome to the server!");
 		// TODO Auto-generated method stub
 
+
 	}
 
 	/* (non-Javadoc)

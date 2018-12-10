@@ -299,7 +299,6 @@ public class JavaLanguageServerPlugin extends Plugin {
 		ExecutorService executorService = Executors.newCachedThreadPool();
 		protocol = new JDTLanguageServer(projectsManager, preferenceManager);
 		if (JDTEnvironmentUtils.inSocketStreamDebugMode()) {
-			// HERE: need multiple workspace support?
 			String host = JDTEnvironmentUtils.getClientHost();
 			Integer port = JDTEnvironmentUtils.getClientPort();
 			InetSocketAddress inetSocketAddress = new InetSocketAddress(host, port);
