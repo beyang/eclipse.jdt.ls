@@ -133,6 +133,7 @@ public final class JDTUtils {
 			if(!ProjectUtils.isJavaProject(resource.getProject())){
 				return null;
 			}
+			// MARK
 			IJavaElement element = JavaCore.create(resource);
 			if (element instanceof ICompilationUnit) {
 				return (ICompilationUnit)element;
@@ -607,6 +608,8 @@ public final class JDTUtils {
 	}
 
 	public static IJavaElement[] findElementsAtSelection(ITypeRoot unit, int line, int column, PreferenceManager preferenceManager, IProgressMonitor monitor) throws JavaModelException {
+		// MARK
+
 		if (unit == null) {
 			return null;
 		}
@@ -703,6 +706,12 @@ public final class JDTUtils {
 	}
 
 	public static IResource findResource(URI uri, Function<URI, IResource[]> resourceFinder) {
+		// TODO(beyang): use RemoteIFile here
+		if (uri.getScheme().equals("http")) {
+			RemoteIFile remoteFile = new RemoteIFile(uri);
+			return remoteFile;
+		}
+
 		if (uri == null || !"file".equals(uri.getScheme())) {
 			return null;
 		}

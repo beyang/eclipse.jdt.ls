@@ -146,18 +146,6 @@ public class JDTLanguageServer implements LanguageServer, TextDocumentService, W
 		this.preferenceManager = preferenceManager;
 	}
 
-
-	//	/* (non-Javadoc)
-	//	 * @see org.eclipse.lsp4j.services.LanguageClientAware#connect(org.eclipse.lsp4j.services.LanguageClient)
-	//	 */
-	//	@Override
-	//	public void connect(LanguageClient client) {
-	//		if (!(client instanceof JavaLanguageClient)) {
-	//			throw new RuntimeException("Language client must be JavaLanaguageClient");
-	//		}
-	//		connectClient((JavaLanguageClient) client);
-	//	}
-
 	public void connectClient(JavaLanguageClient client) {
 		this.client = new JavaClientConnection(client);
 		progressReporterManager = new ProgressReporterManager(client, preferenceManager);
