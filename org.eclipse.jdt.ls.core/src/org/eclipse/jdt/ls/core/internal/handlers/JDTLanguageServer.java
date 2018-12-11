@@ -114,6 +114,7 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
+
 /**
  * @author Gorkem Ercan
  *
@@ -144,6 +145,18 @@ public class JDTLanguageServer implements LanguageServer, TextDocumentService, W
 		this.pm = projects;
 		this.preferenceManager = preferenceManager;
 	}
+
+
+	//	/* (non-Javadoc)
+	//	 * @see org.eclipse.lsp4j.services.LanguageClientAware#connect(org.eclipse.lsp4j.services.LanguageClient)
+	//	 */
+	//	@Override
+	//	public void connect(LanguageClient client) {
+	//		if (!(client instanceof JavaLanguageClient)) {
+	//			throw new RuntimeException("Language client must be JavaLanaguageClient");
+	//		}
+	//		connectClient((JavaLanguageClient) client);
+	//	}
 
 	public void connectClient(JavaLanguageClient client) {
 		this.client = new JavaClientConnection(client);
@@ -813,5 +826,4 @@ public class JDTLanguageServer implements LanguageServer, TextDocumentService, W
 			JavaLanguageServerPlugin.logException(e.getMessage(), e);
 		}
 	}
-
 }
