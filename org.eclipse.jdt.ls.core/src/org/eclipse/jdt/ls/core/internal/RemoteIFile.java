@@ -40,6 +40,8 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
  */
 public class RemoteIFile implements IFile {
 
+	// NEXT: finish implementing
+
 	private URI uri;
 
 	public RemoteIFile(URI uri) {
