@@ -12,7 +12,26 @@ package org.eclipse.jdt.ls.core.internal;
 
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
+import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
+import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.eclipse.lsp4j.jsonrpc.Endpoint;
+import org.eclipse.lsp4j.jsonrpc.json.JsonRpcMethod;
+import org.eclipse.lsp4j.jsonrpc.json.MessageConstants;
+import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler;
+import org.eclipse.lsp4j.jsonrpc.messages.Message;
+import org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage;
+import org.eclipse.lsp4j.jsonrpc.messages.RequestMessage;
+import org.eclipse.lsp4j.jsonrpc.messages.ResponseMessage;
+import org.eclipse.lsp4j.jsonrpc.services.GenericEndpoint;
+import org.eclipse.lsp4j.jsonrpc.services.ServiceEndpoints;
+import org.eclipse.lsp4j.services.LanguageClient;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -24,46 +43,18 @@ import org.java_websocket.server.WebSocketServer;
  */
 public class WebSocketLanguageServer extends WebSocketServer {
 
+	private static final Logger LOG = Logger.getLogger(WebSocketLanguageServer.class.getName());
+
+	private MessageJsonHandler jsonHandler;
+	private Map<WebSocket, Endpoint> endpoints = new LinkedHashMap<>();
+
 	public WebSocketLanguageServer(int port) throws UnknownHostException {
 		super(new InetSocketAddress(port));
-	}
 
-	/* (non-Javadoc)
-	 * @see org.java_websocket.server.WebSocketServer#onClose(org.java_websocket.WebSocket, int, java.lang.String, boolean)
-	 */
-	@Override
-	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-		// TODO Auto-generated method stub
-		System.err.println("# close:" + reason);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.java_websocket.server.WebSocketServer#onError(org.java_websocket.WebSocket, java.lang.Exception)
-	 */
-	@Override
-	public void onError(WebSocket conn, Exception err) {
-		// TODO Auto-generated method stub
-		System.err.println("# err: " + err.toString());
-	}
-
-	/* (non-Javadoc)
-	 * @see org.java_websocket.server.WebSocketServer#onMessage(org.java_websocket.WebSocket, java.lang.String)
-	 */
-	@Override
-	public void onMessage(WebSocket conn, String msg) {
-		// TODO Auto-generated method stub
-		System.err.println("# message: " + msg);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.java_websocket.server.WebSocketServer#onOpen(org.java_websocket.WebSocket, org.java_websocket.handshake.ClientHandshake)
-	 */
-	@Override
-	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		System.err.println("Welcome to the server!");
-		// TODO Auto-generated method stub
-
-
+		Map<String, JsonRpcMethod> supportedMethods = new LinkedHashMap<>();
+		supportedMethods.putAll(ServiceEndpoints.getSupportedMethods(LanguageClient.class));
+		supportedMethods.putAll(ServiceEndpoints.getSupportedMethods(JDTLanguageServer.class));
+		this.jsonHandler = new MessageJsonHandler(supportedMethods);
 	}
 
 	/* (non-Javadoc)
@@ -71,8 +62,61 @@ public class WebSocketLanguageServer extends WebSocketServer {
 	 */
 	@Override
 	public void onStart() {
-		// TODO Auto-generated method stub
-		System.err.println("# onStart");
+		LOG.info("Language server started");
 	}
 
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onOpen(org.java_websocket.WebSocket, org.java_websocket.handshake.ClientHandshake)
+	 */
+	@Override
+	public void onOpen(WebSocket conn, ClientHandshake handshake) {
+		PreferenceManager preferenceManager = new PreferenceManager();
+		ProjectsManager projectsManager = new ProjectsManager(preferenceManager);
+		JDTLanguageServer ls = new JDTLanguageServer(projectsManager, preferenceManager);
+
+		GenericEndpoint localEndpoint = new GenericEndpoint(Collections.singleton(ls));
+		this.endpoints.put(conn, localEndpoint);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onClose(org.java_websocket.WebSocket, int, java.lang.String, boolean)
+	 */
+	@Override
+	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+		this.endpoints.remove(conn);
+		conn.close();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onMessage(org.java_websocket.WebSocket, java.lang.String)
+	 */
+	@Override
+	public void onMessage(WebSocket conn, String msg) {
+		Endpoint endpoint = this.endpoints.get(conn);
+		Message m = jsonHandler.parseMessage(msg);
+		if (m instanceof RequestMessage) {
+			LOG.log(Level.INFO, "Request from client {}", m);
+			RequestMessage req = (RequestMessage) m;
+			Object result = endpoint.request(req.getMethod(), req.getParams()).join();
+			ResponseMessage resp = new ResponseMessage();
+			resp.setRawId(req.getRawId());
+			resp.setJsonrpc(MessageConstants.JSONRPC_VERSION);
+			resp.setResult(result);
+			conn.send(resp.toString());
+		} else if (m instanceof NotificationMessage) {
+			LOG.log(Level.INFO, "Notif from client {}", m);
+			NotificationMessage notify = (NotificationMessage) m;
+			endpoint.notify(notify.getMethod(), notify.getParams());
+		} else {
+			LOG.log(Level.INFO, "WebSocket message from client of unknown type: {}", msg);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.java_websocket.server.WebSocketServer#onError(org.java_websocket.WebSocket, java.lang.Exception)
+	 */
+	@Override
+	public void onError(WebSocket conn, Exception err) {
+		LOG.log(Level.WARNING, "WebSocket error: {}", err);
+	}
 }
