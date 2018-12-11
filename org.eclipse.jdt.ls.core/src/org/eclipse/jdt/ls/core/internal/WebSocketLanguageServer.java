@@ -18,15 +18,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.eclipse.jdt.ls.core.internal.JavaClientConnection.JavaLanguageClient;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
-import org.eclipse.lsp4j.jsonrpc.JsonRpcException;
-import org.eclipse.lsp4j.jsonrpc.MessageConsumer;
-import org.eclipse.lsp4j.jsonrpc.MessageIssueException;
-import org.eclipse.lsp4j.jsonrpc.RemoteEndpoint;
 import org.eclipse.lsp4j.jsonrpc.json.JsonRpcMethod;
 import org.eclipse.lsp4j.jsonrpc.json.MessageConstants;
 import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler;
@@ -81,15 +76,17 @@ public class WebSocketLanguageServer extends WebSocketServer {
 		JDTLanguageServer ls = new JDTLanguageServer(projectsManager, preferenceManager);
 
 		GenericEndpoint localEndpoint = new GenericEndpoint(Collections.singleton(ls));
-		MessageConsumer out = new MessageConsumer() {
-			@Override
-			public void consume(Message arg0) throws MessageIssueException, JsonRpcException {
-				LOG.log(Level.INFO, "sending message: " + arg0);
-				conn.send(arg0.toString());
-			}
-		};
-		RemoteEndpoint remote = new RemoteEndpoint(out, localEndpoint);
-		ls.connectClient(ServiceEndpoints.toServiceObject(remote, JavaLanguageClient.class));
+
+		// TODO(beyang): why does adding this in cause things to hang (i.e., no hovers)
+		//		MessageConsumer out = new MessageConsumer() {
+		//			@Override
+		//			public void consume(Message arg0) throws MessageIssueException, JsonRpcException {
+		//				LOG.log(Level.INFO, "sending message: " + arg0);
+		//				conn.send(arg0.toString());
+		//			}
+		//		};
+		//		RemoteEndpoint remote = new RemoteEndpoint(out, localEndpoint);
+		//		ls.connectClient(ServiceEndpoints.toServiceObject(remote, JavaLanguageClient.class));
 
 		this.endpoints.put(conn, localEndpoint);
 	}
@@ -108,6 +105,7 @@ public class WebSocketLanguageServer extends WebSocketServer {
 	 */
 	@Override
 	public void onMessage(WebSocket conn, String msg) {
+		System.err.println(" ### msg: " + msg);
 		Endpoint endpoint = this.endpoints.get(conn);
 		Message m = jsonHandler.parseMessage(msg);
 		if (m instanceof RequestMessage) {
