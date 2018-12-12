@@ -112,7 +112,7 @@ public class JavaLanguageServerPlugin extends Plugin {
 	// TODO(beyang): end singletons
 
 	// TODO(beyang): debug
-	private static final boolean multiConnection = true;
+	private static final boolean multiConnection = Environment.get("USE_WEBSOCKET", "").equals("true");
 
 
 	public static LanguageServer getLanguageServer() {

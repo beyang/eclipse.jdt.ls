@@ -124,9 +124,6 @@ public final class JDTUtils {
 	 * @return compilation unit
 	 */
 	public static ICompilationUnit resolveCompilationUnit(URI uri) {
-		IRemoteFileService s = null;
-		//		IRemoteConnection c = null;
-
 		if (uri == null || JDT_SCHEME.equals(uri.getScheme()) || !uri.isAbsolute()){
 			return null;
 		}
@@ -709,11 +706,15 @@ public final class JDTUtils {
 	}
 
 	public static IResource findResource(URI uri, Function<URI, IResource[]> resourceFinder) {
-		// TODO(beyang): use RemoteIFile here
-		if (uri.getScheme().equals("http")) {
-			RemoteIFile remoteFile = new RemoteIFile(uri);
-			return remoteFile;
-		}
+		IRemoteFileService s = null;
+
+		////////////////////////
+
+		//		// TODO(beyang): use RemoteIFile here
+		//		if (uri.getScheme().equals("http")) {
+		//			RemoteIFile remoteFile = new RemoteIFile(uri);
+		//			return remoteFile;
+		//		}
 
 		if (uri == null || !"file".equals(uri.getScheme())) {
 			return null;
