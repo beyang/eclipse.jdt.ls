@@ -16,12 +16,15 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+
+import javax.swing.text.BadLocationException;
 
 import org.eclipse.core.internal.utils.FileUtil;
 import org.eclipse.core.resources.IContainer;
@@ -75,15 +78,11 @@ import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
 import org.eclipse.jdt.ls.core.internal.managers.ContentProviderManager;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
+import org.eclipse.remote.core.IRemoteFileService;
+import org.jsoup.nodes.Document;
 
 import com.google.common.base.Charsets;
-import com.google.common.io.Files;
 
 /**
  * General utilities for working with JDT APIs
@@ -124,6 +123,9 @@ public final class JDTUtils {
 	 * @return compilation unit
 	 */
 	public static ICompilationUnit resolveCompilationUnit(URI uri) {
+		IRemoteFileService s = null;
+		//		IRemoteConnection c = null;
+
 		if (uri == null || JDT_SCHEME.equals(uri.getScheme()) || !uri.isAbsolute()){
 			return null;
 		}
