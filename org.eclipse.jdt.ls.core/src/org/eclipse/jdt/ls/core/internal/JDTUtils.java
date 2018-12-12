@@ -81,7 +81,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
-import org.eclipse.remote.core.IRemoteFileService;
 
 import com.google.common.base.Charsets;
 
@@ -706,15 +705,17 @@ public final class JDTUtils {
 	}
 
 	public static IResource findResource(URI uri, Function<URI, IResource[]> resourceFinder) {
-		IRemoteFileService s = null;
+		//		IRemoteFileService s = null;
 
 		////////////////////////
 
-		//		// TODO(beyang): use RemoteIFile here
-		//		if (uri.getScheme().equals("http")) {
-		//			RemoteIFile remoteFile = new RemoteIFile(uri);
-		//			return remoteFile;
-		//		}
+		// TODO(beyang): use RemoteIFile here
+		if (uri.getScheme().equals("http")) {
+			RemoteIFile remoteFile = new RemoteIFile(uri);
+			return remoteFile;
+		}
+
+		////////////////////////
 
 		if (uri == null || !"file".equals(uri.getScheme())) {
 			return null;

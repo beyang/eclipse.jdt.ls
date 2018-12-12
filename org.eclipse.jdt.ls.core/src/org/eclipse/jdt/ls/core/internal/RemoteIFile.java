@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.jdt.ls.core.internal;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URI;
@@ -772,8 +773,8 @@ public class RemoteIFile implements IFile {
 	 */
 	@Override
 	public InputStream getContents() throws CoreException {
-		// TODO Auto-generated method stub
-		return null;
+		String contents = "TODO";
+		return new ByteArrayInputStream(contents.getBytes());
 	}
 
 	/* (non-Javadoc)
@@ -781,8 +782,7 @@ public class RemoteIFile implements IFile {
 	 */
 	@Override
 	public InputStream getContents(boolean force) throws CoreException {
-		// TODO Auto-generated method stub
-		return null;
+		return getContents();
 	}
 
 	/* (non-Javadoc)
