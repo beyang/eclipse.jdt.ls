@@ -16,15 +16,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-
-import javax.swing.text.BadLocationException;
 
 import org.eclipse.core.internal.utils.FileUtil;
 import org.eclipse.core.resources.IContainer;
@@ -78,9 +75,13 @@ import org.eclipse.jdt.ls.core.internal.handlers.JsonRpcHelpers;
 import org.eclipse.jdt.ls.core.internal.managers.ContentProviderManager;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.remote.core.IRemoteFileService;
-import org.jsoup.nodes.Document;
 
 import com.google.common.base.Charsets;
 
@@ -236,7 +237,7 @@ public final class JDTUtils {
 		try {
 			File file = ResourceUtils.toFile(uri);
 			//FIXME need to determine actual charset from file
-			String content = Files.toString(file, Charsets.UTF_8);
+			String content = com.google.common.io.Files.toString(file, Charsets.UTF_8);
 			if (content.isEmpty() && javaProject != null && ProjectsManager.DEFAULT_PROJECT_NAME.equals(javaProject.getProject().getName())) {
 				java.nio.file.Path path = Paths.get(uri);
 				java.nio.file.Path parent = path;
