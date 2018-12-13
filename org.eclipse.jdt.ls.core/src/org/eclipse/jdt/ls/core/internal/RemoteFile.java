@@ -39,13 +39,13 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
  * @author beyang
  *
  */
-public class RemoteIFile implements IFile {
+public class RemoteFile implements IFile {
 
 	// NEXT: finish implementing
 
 	private URI uri;
 
-	public RemoteIFile(URI uri) {
+	public RemoteFile(URI uri) {
 		this.uri = uri;
 	}
 

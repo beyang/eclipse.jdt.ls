@@ -127,6 +127,7 @@ public final class JDTUtils {
 			return null;
 		}
 
+		//		IFile resource = (IFile) findResource(uri, new RemoteWorkspace()::findFilesForLocationURI);
 		IFile resource = (IFile) findResource(uri, ResourcesPlugin.getWorkspace().getRoot()::findFilesForLocationURI);
 		if(resource != null){
 			if(!ProjectUtils.isJavaProject(resource.getProject())){
@@ -711,7 +712,7 @@ public final class JDTUtils {
 
 		// TODO(beyang): use RemoteIFile here
 		if (uri.getScheme().equals("http")) {
-			RemoteIFile remoteFile = new RemoteIFile(uri);
+			RemoteFile remoteFile = new RemoteFile(uri);
 			return remoteFile;
 		}
 
