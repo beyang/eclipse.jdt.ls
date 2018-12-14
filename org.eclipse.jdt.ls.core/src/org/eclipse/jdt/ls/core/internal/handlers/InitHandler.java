@@ -84,7 +84,7 @@ final public class InitHandler {
 			preferenceManager.updateClientPrefences(param.getCapabilities(), extendedClientCapabilities);
 		}
 
-
+		// JKL:
 		Collection<IPath> rootPaths = new ArrayList<>();
 		Collection<String> workspaceFolders = getInitializationOption(initializationOptions, "workspaceFolders", Collection.class);
 		if (workspaceFolders != null && !workspaceFolders.isEmpty()) {
@@ -111,6 +111,7 @@ final public class InitHandler {
 		}
 		if (rootPaths.isEmpty()) {
 			IPath workspaceLocation = ResourcesPlugin.getWorkspace().getRoot().getLocation();
+			// JKL: fall back to default here
 			logInfo("No workspace folders or root uri was defined. Falling back on " + workspaceLocation);
 			rootPaths.add(workspaceLocation);
 		}

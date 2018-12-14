@@ -117,6 +117,7 @@ public class MavenProjectImporter extends AbstractProjectImporter {
 
 	@Override
 	public void importToWorkspace(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
+		// JKL:
 		JavaLanguageServerPlugin.logInfo(IMPORTING_MAVEN_PROJECTS);
 		MavenConfigurationImpl configurationImpl = (MavenConfigurationImpl)MavenPlugin.getMavenConfiguration();
 		configurationImpl.setDownloadSources(true);

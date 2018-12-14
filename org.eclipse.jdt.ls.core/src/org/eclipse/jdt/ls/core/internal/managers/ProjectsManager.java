@@ -111,6 +111,7 @@ public class ProjectsManager implements ISaveParticipant {
 		this.preferenceManager = preferenceManager;
 	}
 
+	// JKL:
 	public void initializeProjects(final Collection<IPath> rootPaths, IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		// Run as a Java runnable to trigger any build while importing
 		JavaCore.run(new IWorkspaceRunnable() {

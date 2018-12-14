@@ -29,6 +29,8 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -127,8 +129,12 @@ public final class JDTUtils {
 			return null;
 		}
 
+		// TODO(beyang): remote-specific code
 		//		IFile resource = (IFile) findResource(uri, new RemoteWorkspace()::findFilesForLocationURI);
-		IFile resource = (IFile) findResource(uri, ResourcesPlugin.getWorkspace().getRoot()::findFilesForLocationURI);
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IWorkspaceRoot root = workspace.getRoot();
+		IFile resource = (IFile) findResource(uri, root::findFilesForLocationURI);
+
 		if(resource != null){
 			if(!ProjectUtils.isJavaProject(resource.getProject())){
 				return null;
@@ -710,12 +716,12 @@ public final class JDTUtils {
 
 		////////////////////////
 
-		// TODO(beyang): use RemoteIFile here
-		if (uri.getScheme().equals("http")) {
-			RemoteFile remoteFile = new RemoteFile(uri);
-			return remoteFile;
-		}
-
+		//		// TODO(beyang): use RemoteIFile here
+		//		if (uri.getScheme().equals("http")) {
+		//			RemoteFile remoteFile = new RemoteFile(uri);
+		//			return remoteFile;
+		//		}
+		//
 		////////////////////////
 
 		if (uri == null || !"file".equals(uri.getScheme())) {
