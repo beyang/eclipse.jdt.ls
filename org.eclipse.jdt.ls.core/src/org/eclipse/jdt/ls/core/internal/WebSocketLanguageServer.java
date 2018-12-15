@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.jdt.ls.core.internal;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
@@ -20,6 +21,7 @@ import java.util.logging.Logger;
 
 import org.eclipse.jdt.ls.core.internal.JavaClientConnection.JavaLanguageClient;
 import org.eclipse.jdt.ls.core.internal.handlers.JDTLanguageServer;
+import org.eclipse.jdt.ls.core.internal.handlers.RemoteLanguageServer;
 import org.eclipse.jdt.ls.core.internal.managers.ProjectsManager;
 import org.eclipse.jdt.ls.core.internal.preferences.PreferenceManager;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
@@ -40,7 +42,6 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
-
 
 /**
  * @author beyang
@@ -80,9 +81,11 @@ public class WebSocketLanguageServer extends WebSocketServer {
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
 		PreferenceManager preferenceManager = new PreferenceManager();
 		ProjectsManager projectsManager = new ProjectsManager(preferenceManager);
-		JDTLanguageServer ls = new JDTLanguageServer(projectsManager, preferenceManager);
-
-		GenericEndpoint localEndpoint = new GenericEndpoint(Collections.singleton(ls));
+		JDTLanguageServer jdtLS = new JDTLanguageServer(projectsManager, preferenceManager);
+		File cacheRoot = new File("/tmp/eclipse.jdt.ls.cache");
+		cacheRoot.mkdirs();
+		RemoteLanguageServer remoteLS = new RemoteLanguageServer(jdtLS, cacheRoot);
+		GenericEndpoint localEndpoint = new GenericEndpoint(Collections.singleton(remoteLS));
 
 		MessageConsumer out = new MessageConsumer() {
 			@Override
@@ -92,7 +95,7 @@ public class WebSocketLanguageServer extends WebSocketServer {
 			}
 		};
 		RemoteEndpoint remote = new RemoteEndpoint(out, localEndpoint);
-		ls.connectClient(ServiceEndpoints.toServiceObject(remote, JavaLanguageClient.class));
+		jdtLS.connectClient(ServiceEndpoints.toServiceObject(remote, JavaLanguageClient.class));
 
 		this.endpoints.put(conn, localEndpoint);
 	}

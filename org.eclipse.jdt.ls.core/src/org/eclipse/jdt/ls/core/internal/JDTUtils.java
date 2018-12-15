@@ -133,13 +133,14 @@ public final class JDTUtils {
 		//		IFile resource = (IFile) findResource(uri, new RemoteWorkspace()::findFilesForLocationURI);
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IWorkspaceRoot root = workspace.getRoot();
+		// JKL: would have to replace this line with a finder that works with remote files
 		IFile resource = (IFile) findResource(uri, root::findFilesForLocationURI);
 
 		if(resource != null){
 			if(!ProjectUtils.isJavaProject(resource.getProject())){
 				return null;
 			}
-			// MARK
+			// JKL: calling into the JDT API
 			IJavaElement element = JavaCore.create(resource);
 			if (element instanceof ICompilationUnit) {
 				return (ICompilationUnit)element;
