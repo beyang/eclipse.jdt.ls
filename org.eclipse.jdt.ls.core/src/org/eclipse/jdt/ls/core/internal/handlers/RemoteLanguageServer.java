@@ -13,15 +13,18 @@ package org.eclipse.jdt.ls.core.internal.handlers;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -67,6 +70,9 @@ public class RemoteLanguageServer implements LanguageServer, TextDocumentService
 	}
 
 	private String uriToCachePath(String uri) {
+		if (uri == null) {
+			return null;
+		}
 		try {
 			URL url = new URL(uri);
 			//			return Paths.get(cacheRootDir(), url.getProtocol(), url.getHost(), url.getPath().replace("/", File.separator)).toString();
@@ -77,10 +83,16 @@ public class RemoteLanguageServer implements LanguageServer, TextDocumentService
 	}
 
 	private String remoteToLocalUri(String remote) {
+		if (remote == null) {
+			return null;
+		}
 		return "file://" + uriToCachePath(remote).replace(File.separator, "/");
 	}
 
 	private String localToRemoteUri(String local) {
+		if (local == null) {
+			return null;
+		}
 		String path = StringUtils.replace(StringUtils.removeStart(local, "file://"), "/", File.separator);
 		Path subpath = Paths.get(StringUtils.removeStart(StringUtils.removeStart(path, cacheRootDir()), File.separator));
 		if (subpath.getNameCount() < 2) {
@@ -160,22 +172,85 @@ public class RemoteLanguageServer implements LanguageServer, TextDocumentService
 		return underlying.shutdown();
 	}
 
+	public static void rewriteUris(Object obj, Function<String, String> modifier) {
+		if (obj == null) {
+			return;
+		}
+		// Container cases
+		if (obj instanceof Array || obj instanceof Map) {
+			// Ignore arrays and maps, because they aren't returned by any
+			// of the lsp4j data structure accessors.
+			return;
+		}
+		if (obj instanceof List) {
+			for (Object elem : (List<?>) obj) {
+				rewriteUris(elem, modifier);
+			}
+			return;
+		}
+
+		Class<?> type = obj.getClass();
+		Method[] methods = type.getMethods();
+		for (Method m : methods) {
+			String methodName = m.getName();
+			if (!methodName.startsWith("get") || m.getParameterCount() > 0) {
+				continue;
+			}
+			if (methodName.equals("getClass")) {
+				continue;
+			}
+			Class<?> returnType = m.getReturnType();
+			if (returnType.isPrimitive() || returnType.equals(Byte.class) || returnType.equals(Short.class) || returnType.equals(Integer.class) || returnType.equals(Long.class) || returnType.equals(Character.class)
+					|| returnType.equals(Float.class)
+					|| returnType.equals(Double.class) || returnType.equals(Boolean.class)) {
+				continue;
+			}
+			if ((methodName.contains("Uri") || methodName.contains("URI")) && returnType.equals(String.class)) {
+				String setterMethodName = "set" + StringUtils.removeStart(methodName, "get");
+				Method setter;
+				try {
+					setter = type.getMethod(setterMethodName, String.class);
+				} catch (NoSuchMethodException e) {
+					continue;
+				}
+				try {
+					setter.invoke(obj, modifier.apply((String) m.invoke(obj)));
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+				continue;
+			}
+			// Object getter
+			try {
+				rewriteUris(m.invoke(obj), modifier);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
 	@Override
 	public CompletableFuture<Hover> hover(TextDocumentPositionParams position) {
-		position.getTextDocument().setUri(remoteToLocalUri(position.getTextDocument().getUri()));
+		rewriteUris(position, this::remoteToLocalUri);
+//		position.getTextDocument().setUri(remoteToLocalUri(position.getTextDocument().getUri()));
 		return underlying.hover(position);
 	}
 
 	@Override
 	public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
-		position.getTextDocument().setUri(remoteToLocalUri(position.getTextDocument().getUri()));
+		//		position.getTextDocument().setUri(remoteToLocalUri(position.getTextDocument().getUri()));
+		rewriteUris(position, this::remoteToLocalUri);
 		CompletableFuture<List<? extends Location>> defRes = underlying.definition(position);
-		return defRes.thenApply(defs ->
-			defs.stream().map(def -> {
-			def.setUri(localToRemoteUri(def.getUri()));
-			return def;
-			}).collect(Collectors.toList())
-		);
+		return defRes.thenApply(defs -> {
+			RemoteLanguageServer.rewriteUris(defs, RemoteLanguageServer.this::localToRemoteUri);
+			return defs;
+		});
+//		return defRes.thenApply(defs ->
+//			defs.stream().map(def -> {
+//			def.setUri(localToRemoteUri(def.getUri()));
+//			return def;
+//			}).collect(Collectors.toList())
+//		);
 	}
 
 	@Override
