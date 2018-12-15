@@ -17,12 +17,15 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.ls.core.internal.BuildWorkspaceStatus;
 import org.eclipse.jdt.ls.core.internal.lsp.JavaProtocolExtensions;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
@@ -34,6 +37,8 @@ import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextDocumentPositionParams;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -64,10 +69,26 @@ public class RemoteLanguageServer implements LanguageServer, TextDocumentService
 	private String uriToCachePath(String uri) {
 		try {
 			URL url = new URL(uri);
-			return Paths.get(cacheRootDir(), url.getHost(), url.getPath().replace("/", File.separator)).toString();
+			//			return Paths.get(cacheRootDir(), url.getProtocol(), url.getHost(), url.getPath().replace("/", File.separator)).toString();
+			return Paths.get(cacheRootDir(), url.getProtocol(), url.getHost(), url.getPath().replace("/", File.separator)).toString();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private String remoteToLocalUri(String remote) {
+		return "file://" + uriToCachePath(remote).replace(File.separator, "/");
+	}
+
+	private String localToRemoteUri(String local) {
+		String path = StringUtils.replace(StringUtils.removeStart(local, "file://"), "/", File.separator);
+		Path subpath = Paths.get(StringUtils.removeStart(StringUtils.removeStart(path, cacheRootDir()), File.separator));
+		if (subpath.getNameCount() < 2) {
+			throw new RuntimeException("TODO");
+		}
+		String protocol = subpath.getName(0).toString();
+		String remainder = StringUtils.removeStart(subpath.toString(), protocol + File.separator);
+		return protocol + "://" + StringUtils.replace(remainder, File.separator, "/");
 	}
 
 	private String cacheTmpDir() {
@@ -100,6 +121,10 @@ public class RemoteLanguageServer implements LanguageServer, TextDocumentService
 	private void fetchTree(String remoteUri, String localPath) {
 		// TODO(beyang): try-with-resources block (so things are closed properly)
 		try {
+			if (Files.exists(Paths.get(localPath))) {
+				return;
+			}
+
 			InputStream respBody = HTTPUtils.httpGet(remoteUri);
 			new File(cacheTmpDir()).mkdirs();
 			Path tmpDir = Files.createTempDirectory(Paths.get(cacheTmpDir()), Paths.get(localPath).getFileName().toString());
@@ -137,7 +162,25 @@ public class RemoteLanguageServer implements LanguageServer, TextDocumentService
 
 	@Override
 	public CompletableFuture<Hover> hover(TextDocumentPositionParams position) {
+		position.getTextDocument().setUri(remoteToLocalUri(position.getTextDocument().getUri()));
 		return underlying.hover(position);
+	}
+
+	@Override
+	public CompletableFuture<List<? extends Location>> definition(TextDocumentPositionParams position) {
+		position.getTextDocument().setUri(remoteToLocalUri(position.getTextDocument().getUri()));
+		CompletableFuture<List<? extends Location>> defRes = underlying.definition(position);
+		return defRes.thenApply(defs ->
+			defs.stream().map(def -> {
+			def.setUri(localToRemoteUri(def.getUri()));
+			return def;
+			}).collect(Collectors.toList())
+		);
+	}
+
+	@Override
+	public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
+		return underlying.references(params);
 	}
 
 	@Override
