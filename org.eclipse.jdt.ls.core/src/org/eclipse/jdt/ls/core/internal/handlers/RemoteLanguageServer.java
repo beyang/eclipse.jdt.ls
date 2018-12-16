@@ -245,12 +245,6 @@ public class RemoteLanguageServer implements LanguageServer, TextDocumentService
 			RemoteLanguageServer.rewriteUris(defs, RemoteLanguageServer.this::localToRemoteUri);
 			return defs;
 		});
-//		return defRes.thenApply(defs ->
-//			defs.stream().map(def -> {
-//			def.setUri(localToRemoteUri(def.getUri()));
-//			return def;
-//			}).collect(Collectors.toList())
-//		);
 	}
 
 	@Override
